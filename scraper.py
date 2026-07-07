@@ -2,6 +2,7 @@ import time
 import re
 import threading
 import sys
+import os
 from playwright.sync_api import sync_playwright
 
 # Global scraper state
@@ -56,8 +57,13 @@ def run_scraper(category, location, limit, headless=True):
     
     try:
         with sync_playwright() as p:
-            add_log("Launching Chromium browser...")
-            browser = p.chromium.launch(headless=headless)
+            browserless_url = os.environ.get("BROWSERLESS_URL")
+            if browserless_url:
+                add_log("Connecting to remote browser...")
+                browser = p.chromium.connect_over_cdp(browserless_url)
+            else:
+                add_log("Launching Chromium browser locally...")
+                browser = p.chromium.launch(headless=headless)
             context = browser.new_context(
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                 viewport={"width": 1280, "height": 800}
