@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Map Scraper | Business Leads Extractor</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="glow-bg-2"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar / Control Panel -->
+        <header class="app-header">
+            <div class="brand">
+                <i class="fa-solid fa-earth-americas brand-icon"></i>
+                <div class="brand-text">
+                    <h1>G-Map Scraper</h1>
+                    <span>Lead Generation Suite</span>
+                </div>
+            </div>
+            
+            <form id="scrape-form" class="control-card">
+                <h2 class="card-title"><i class="fa-solid fa-sliders"></i> Configuration</h2>
+                
+                <div class="input-group">
+                    <label for="category">Business Category</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-briefcase input-icon"></i>
+                        <input type="text" id="category" name="category" placeholder="e.g. Dentists, Real Estate, Cafes" required>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="location">Location / Area</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-location-dot input-icon"></i>
+                        <input type="text" id="location" name="location" placeholder="e.g. Brooklyn NY, London, Toronto" required>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="input-group width-50">
+                        <label for="limit">Search Limit</label>
+                        <div class="input-wrapper">
+                            <i class="fa-solid fa-list-numeric input-icon"></i>
+                            <input type="number" id="limit" name="limit" min="1" max="500" value="20" required>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group width-50">
+                        <label for="headless">Browser Mode</label>
+                        <div class="toggle-wrapper">
+                            <label class="switch">
+                                <input type="checkbox" id="headless" name="headless" checked>
+                                <span class="slider round"></span>
+                            </label>
+                            <span class="toggle-label" id="headless-label">Headless (Background)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" id="start-btn" class="btn btn-primary">
+                        <i class="fa-solid fa-play"></i> Start Extracting
+                    </button>
+                    <button type="button" id="stop-btn" class="btn btn-danger disabled" disabled>
+                        <i class="fa-solid fa-stop"></i> Stop Scraper
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Quick Stats -->
+            <div class="stats-panel control-card">
+                <h2 class="card-title"><i class="fa-solid fa-chart-simple"></i> Real-time Stats</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Discovered</span>
+                        <span class="stat-value" id="stat-discovered">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Scraped Leads</span>
+                        <span class="stat-value" id="stat-scraped">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Rating Avg</span>
+                        <span class="stat-value" id="stat-avg-rating">-</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Success Rate</span>
+                        <span class="stat-value" id="stat-success-rate">0%</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Panel / Console & Results -->
+        <main class="app-main">
+            <!-- Progress Tracker -->
+            <div class="progress-card">
+                <div class="progress-info">
+                    <span class="status-badge idle" id="status-badge">Idle</span>
+                    <span class="status-msg" id="status-msg">Ready to scrape leads. Input parameters and click start.</span>
+                    <span class="progress-percent" id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Terminal Logger -->
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-dots">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="terminal-title">Scraper Activity Log</span>
+                    <button id="clear-logs-btn" class="terminal-action-btn" title="Clear Console">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+                <div class="terminal-body" id="console-logs">
+                    <div class="log-line text-muted">[System] Standing by. Enter category and location above to start lead generation.</div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-card">
+                <div class="results-header">
+                    <h2><i class="fa-solid fa-table-list"></i> Scraped Leads Table</h2>
+                    <div class="export-actions">
+                        <button id="download-xlsx" class="btn btn-success disabled" disabled>
+                            <i class="fa-solid fa-file-excel"></i> Export XLSX
+                        </button>
+                        <button id="download-csv" class="btn btn-secondary disabled" disabled>
+                            <i class="fa-solid fa-file-csv"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="leads-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Business Name</th>
+                                <th>Category</th>
+                                <th>Rating</th>
+                                <th>Reviews</th>
+                                <th>Phone Number</th>
+                                <th>Website</th>
+                                <th>Address</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <tr class="empty-row">
+                                <td colspan="9">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-database empty-icon"></i>
+                                        <p>No leads scraped yet. Start extraction to fetch leads.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Script JS -->
+    <script src="/static/main.js"></script>
+</body>
+</html>
