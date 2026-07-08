@@ -258,8 +258,14 @@ def run_scraper(category, location, limit, headless=True):
             set_status("completed", f"Scraping completed! Successfully scraped {len(scraper_state['results'])} businesses.", 100)
             
     except Exception as e:
-        add_log(f"Scraper error: {str(e)}")
-        set_status("failed", f"Failed: {str(e)}")
+        err_msg = str(e)
+        if not os.environ.get("BROWSERLESS_URL") and ("Executable doesn't exist" in err_msg or "executable" in err_msg.lower()):
+            friendly_err = "Error: Chromium executable not found. Since you are running on Vercel, you must configure a remote browser. Please set the BROWSERLESS_URL environment variable in your Vercel project settings."
+            add_log(friendly_err)
+            set_status("failed", friendly_err)
+        else:
+            add_log(f"Scraper error: {err_msg}")
+            set_status("failed", f"Failed: {err_msg}")
 
 def extract_place_details(page):
     """Helper to extract details from the opened place details panel"""
